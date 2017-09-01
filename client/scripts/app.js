@@ -38,6 +38,13 @@ var app = {
   },
   clearMessages: function() {
     $('#chats').html('');
+  },
+  renderMessage: function(message) {
+    $('#chats').append('<p>' + message.text + '</p>');
+  },
+  renderRoom: function(roomName) {
+    var $option = $('<option>').val(roomName).text(roomName);
+    $('#roomSelect').append($option);
   }
 };
 
