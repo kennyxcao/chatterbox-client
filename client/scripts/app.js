@@ -3,12 +3,13 @@ var app = {
   server: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
   username: 'Kenny',
   roomname: 'lobby',
+  rooms: [],
   messages: [],
+  friends: [],
   
   init: function() {
-    // chat username send message roomSelect
-    
     // jquery Selector
+    // app.fetch();
     app.$username = $('.username');
     app.$message = $('#message');
     app.$send = $('#send');
@@ -57,8 +58,14 @@ var app = {
             roomname: data.results[i].roomname,
             time: data.results[i].createdAt
           };
-          app.renderMessage(message);
+          app.messages.push(message);
         }
+        app.renderMessages();
+        app.renderRooms();
+        app.$username = $('.username');
+        app.$username.on('click', app.handleUsernameClick);
+        app.$roomSelect.on('change', app.handleRoomChange);
+        app.boldFriends();
         console.log('chatterbox: Messages received');
       },
       error: function (data) {
@@ -73,21 +80,47 @@ var app = {
   },
   
   renderMessage: function(message) {
-    // {
-    //       username: 'Mel Brooks',
-    //       text: 'I didn\'t get a harumph outa that guy.!',
-    //       roomname: 'lobby'
-    // }
-    $('#chats').append('<p>' + message.time + '\t\t' + '<a href="#" class = "username">' + message.username + '</a>:' + message.text + '--' + message.roomname + '</p>');
+    $('#chats').append('<p>' + '<a href="#" class = "username">' + message.username + '</a>:' + message.text + '\t\t Room: ' + message.roomname + '</p>');
   },
-  
+  renderMessages: function() {
+    app.messages.forEach(app.renderMessage);
+  },
   renderRoom: function(roomName) {
     var $option = $('<option>').val(roomName).text(roomName);
     $('#roomSelect').append($option);
   },
-  
+  renderRooms: function() {
+    app.messages.forEach(function(message) {
+      if (!app.rooms.includes(message.roomname)) {
+        app.rooms.push(message.roomname);
+        app.renderRoom(message.roomname);
+      }
+    });
+  },
+  handleRoomChange: function(event) {
+    var room = $(event.target).text();
+  },
   handleUsernameClick: function(event) {
-    console.log(event.target);
+    console.log('username clicked');
+    console.log(event.target);    
+    var username = $(event.target).text();
+    if (app.friends.indexOf(username) < 0) {
+      app.friends.push(username);
+    }
+    app.boldFriends(username);
+    
+  },
+  
+  boldFriends: function(username) {
+    if (username) {
+      app.$username.filter(function() {
+        return $(this).text() === username;
+      }).parent().css('font-weight', 'bold');       
+    } else {
+      app.$username.filter(function() {
+        return app.friends.includes($(this).text());
+      }).parent().css('font-weight', 'bold');       
+    }
   },
   
   handleSubmit: function(event) {
@@ -117,4 +150,7 @@ var app = {
   
 };
 
-$(document).ready(app.init);
+$(document).ready(function() {
+  // app.fetch();
+  app.init();
+});
