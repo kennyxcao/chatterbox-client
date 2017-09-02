@@ -29,6 +29,8 @@ var app = {
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Message sent');
+        app.clearMessages();
+        app.fetch();
       },
       error: function (data) {
         // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
@@ -41,7 +43,7 @@ var app = {
     $.ajax({
       // This is the url you should use to communicate with the parse API server.
       url: app.server,
-      data: 'order=-createdAt&limit=50',
+      data: 'order=-createdAt&limit=200',
       type: 'GET',
       contentType: 'application/json',
       success: function (data) {
@@ -76,7 +78,7 @@ var app = {
     //       text: 'I didn\'t get a harumph outa that guy.!',
     //       roomname: 'lobby'
     // }
-    $('#chats').append('<p>' + message.time + '\t\t' + '<a src="#" class = "username">' + message.username + ':' + message.text + '--' + message.roomname + '</p>');
+    $('#chats').append('<p>' + message.time + '\t\t' + '<a href="#" class = "username">' + message.username + '</a>:' + message.text + '--' + message.roomname + '</p>');
   },
   
   renderRoom: function(roomName) {
@@ -89,16 +91,20 @@ var app = {
   },
   
   handleSubmit: function(event) {
-    console.log(event.target);
-    debugger;
+    //console.log(event.target);
+    if (!app.$message.val()) {
+      return;
+    }
+    
     var message = {
       username: app.username,
       text: app.$message.val(),
       roomname: app.roomname
     };
-    console.log(message);
+    
     app.send(message);
     app.$message.val('');
+    
     event.preventDefault();
   },
   
@@ -106,7 +112,7 @@ var app = {
     if (!string) {
       return '';
     }
-    return string.replace(/[[&=/\<>"']/g, '');
+    return string.replace(/[[<>]/g, '');
   }
   
 };
