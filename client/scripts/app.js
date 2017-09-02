@@ -1,7 +1,7 @@
 // YOUR CODE HERE:
 var app = {
   server: 'http://parse.sfm6.hackreactor.com/chatterbox/classes/messages',
-  username: 'Kenny',
+  username: location.search.split('=')[1],
   roomname: 'lobby',
   rooms: [],
   messages: [],
@@ -9,7 +9,6 @@ var app = {
   
   init: function() {
     // jquery Selector
-    // app.fetch();
     app.$username = $('.username');
     app.$message = $('#message');
     app.$send = $('#send');
@@ -20,25 +19,22 @@ var app = {
     app.$send.on('submit', app.handleSubmit);
     app.$roomSelect.on('change', app.handleRoomChange);
     
-    
     app.fetch();
-    setInterval(app.fetch.bind(app), 5000);
+    setInterval(app.fetch.bind(app), 10000);
   },
   
   send: function(message) {
     $.ajax({
-      // This is the url you should use to communicate with the parse API server.
       url: app.server,
       type: 'POST',
       data: JSON.stringify(message),
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Message sent');
-        // app.clearMessages();
-        app.fetch();
+        app.showSpinner();
+        setTimeout(app.fetch.bind(app), 200);
       },
       error: function (data) {
-        // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
         console.error('chatterbox: Failed to send message', data);
       }
     });    
@@ -46,7 +42,6 @@ var app = {
   
   fetch: function() {
     $.ajax({
-      // This is the url you should use to communicate with the parse API server.
       url: app.server,
       data: 'order=-createdAt&limit=200',
       type: 'GET',
@@ -58,9 +53,9 @@ var app = {
         app.clearMessages();
         for (var i = 0; i < data.results.length; i++) {
           var message = {
-            username: data.results[i].username,
+            username: app.escapeHTML(data.results[i].username),
             text: app.escapeHTML(data.results[i].text),
-            roomname: data.results[i].roomname,
+            roomname: app.escapeHTML(data.results[i].roomname),
             time: data.results[i].createdAt
           };
           app.messages.push(message);
@@ -68,10 +63,10 @@ var app = {
         app.renderMessages(app.roomname);
         app.renderRooms();
         app.boldFriends();
+        app.hideSpinner();
         console.log('chatterbox: Messages received');
       },
       error: function (data) {
-        // See: https://developer.mozilla.org/en-US/docs/Web/API/console.error
         console.error('chatterbox: Failed to receive message', data);
       }
     });    
@@ -83,10 +78,9 @@ var app = {
   },
   
   renderMessage: function(message) {
-    $('#chats').append('<p>' + '<a href="#" class = "username">' + message.username + '</a>:<br>' + message.text + '\t\t Room: ' + message.roomname + '</p>');
+    $('#chats').append('<p>' + '<a href="#" class = "username">' + message.username + '</a>:<br>' + message.text + '</p>');
   },
   renderMessages: function(roomname) {
-    // app.clearMessages();
     app.messages.filter(function(message) {
       return message.roomname === roomname;
     }).forEach(app.renderMessage);
@@ -104,20 +98,16 @@ var app = {
     });
   },
   handleRoomChange: function(event) {
-    console.log($(event.target).val());
     var room = $(event.target).val();
     app.roomname = room;
-    app.clearMessages();
     app.fetch();
   },
   handleUsernameClick: function(event) {
     var username = $(event.target).text();
-    console.log(username);
-    if (app.friends.indexOf(username) < 0) {
+    if (!app.friends.includes(username)) {
       app.friends.push(username);
     }
     app.boldFriends(username);
-    
   },
   
   boldFriends: function(username) {
@@ -133,7 +123,6 @@ var app = {
   },
   
   handleSubmit: function(event) {
-    console.log(event.target);
     if (!app.$message.val()) {
       return;
     }
@@ -154,8 +143,17 @@ var app = {
     if (!string) {
       return '';
     }
-    return string.replace(/[[<>]/g, '');
+    return string.replace(/[<>]/g, '');
+  },
+  
+  showSpinner: function() {
+    $('.spinner').fadeIn();
+  },
+  
+  hideSpinner: function() {
+    $('.spinner').fadeOut();
   }
+  
   
 };
 

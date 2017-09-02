@@ -91,3 +91,9 @@ form input[type=text] {
 a {
     color: blue;    
 }
+
+#chats p {
+    background-color: #f1f1f1;
+    padding: 10px;
+    border-radius: 5px; 
+}
