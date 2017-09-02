@@ -14,11 +14,15 @@ var app = {
     app.$message = $('#message');
     app.$send = $('#send');
     app.$roomSelect = $('#roomSelect');
-      
-    app.$username.on('click', app.handleUsernameClick);
+    app.$chats = $('#chats');
+    
+    app.$chats.on('click', 'a', app.handleUsernameClick);
     app.$send.on('submit', app.handleSubmit);
+    app.$roomSelect.on('change', app.handleRoomChange);
+    
     
     app.fetch();
+    setInterval(app.fetch.bind(app), 5000);
   },
   
   send: function(message) {
@@ -30,7 +34,7 @@ var app = {
       contentType: 'application/json',
       success: function (data) {
         console.log('chatterbox: Message sent');
-        app.clearMessages();
+        // app.clearMessages();
         app.fetch();
       },
       error: function (data) {
@@ -51,6 +55,7 @@ var app = {
         if (data.results.length === 0) {
           return;
         }
+        app.clearMessages();
         for (var i = 0; i < data.results.length; i++) {
           var message = {
             username: data.results[i].username,
@@ -60,11 +65,8 @@ var app = {
           };
           app.messages.push(message);
         }
-        app.renderMessages();
+        app.renderMessages(app.roomname);
         app.renderRooms();
-        app.$username = $('.username');
-        app.$username.on('click', app.handleUsernameClick);
-        app.$roomSelect.on('change', app.handleRoomChange);
         app.boldFriends();
         console.log('chatterbox: Messages received');
       },
@@ -76,14 +78,18 @@ var app = {
   },
   
   clearMessages: function() {
+    app.messages = [];
     $('#chats').html('');
   },
   
   renderMessage: function(message) {
-    $('#chats').append('<p>' + '<a href="#" class = "username">' + message.username + '</a>:' + message.text + '\t\t Room: ' + message.roomname + '</p>');
+    $('#chats').append('<p>' + '<a href="#" class = "username">' + message.username + '</a>:<br>' + message.text + '\t\t Room: ' + message.roomname + '</p>');
   },
-  renderMessages: function() {
-    app.messages.forEach(app.renderMessage);
+  renderMessages: function(roomname) {
+    // app.clearMessages();
+    app.messages.filter(function(message) {
+      return message.roomname === roomname;
+    }).forEach(app.renderMessage);
   },
   renderRoom: function(roomName) {
     var $option = $('<option>').val(roomName).text(roomName);
@@ -98,12 +104,15 @@ var app = {
     });
   },
   handleRoomChange: function(event) {
-    var room = $(event.target).text();
+    console.log($(event.target).val());
+    var room = $(event.target).val();
+    app.roomname = room;
+    app.clearMessages();
+    app.fetch();
   },
   handleUsernameClick: function(event) {
-    console.log('username clicked');
-    console.log(event.target);    
     var username = $(event.target).text();
+    console.log(username);
     if (app.friends.indexOf(username) < 0) {
       app.friends.push(username);
     }
@@ -113,18 +122,18 @@ var app = {
   
   boldFriends: function(username) {
     if (username) {
-      app.$username.filter(function() {
+      $('.username').filter(function() {
         return $(this).text() === username;
       }).parent().css('font-weight', 'bold');       
     } else {
-      app.$username.filter(function() {
+      $('.username').filter(function() {
         return app.friends.includes($(this).text());
       }).parent().css('font-weight', 'bold');       
     }
   },
   
   handleSubmit: function(event) {
-    //console.log(event.target);
+    console.log(event.target);
     if (!app.$message.val()) {
       return;
     }
