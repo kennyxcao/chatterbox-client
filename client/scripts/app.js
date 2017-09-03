@@ -11,10 +11,12 @@ var app = {
     // jquery Selector
     app.$username = $('.username');
     app.$message = $('#message');
-    app.$send = $('#send');
+    app.$send = $('#send');        
+    app.$addRoom = $('#addRoom');
     app.$roomSelect = $('#roomSelect');
     app.$chats = $('#chats');
     
+    app.$addRoom.on('submit', app.handleAddRoom);
     app.$chats.on('click', 'a', app.handleUsernameClick);
     app.$send.on('submit', app.handleSubmit);
     app.$roomSelect.on('change', app.handleRoomChange);
@@ -139,6 +141,22 @@ var app = {
     event.preventDefault();
   },
   
+  handleAddRoom: function(event) {
+    console.log('add room');
+    var newRoom = $('#roomName').val();
+    if (!newRoom) {
+      return;
+    }
+    if (!app.rooms.includes(newRoom)) {
+      app.rooms.push(newRoom);      
+      app.renderRoom(newRoom);
+    }
+    app.roomname = newRoom;
+    app.$roomSelect.val(newRoom);
+    $('#roomName').val('');
+    event.preventDefault();    
+  },
+  
   escapeHTML: function(string) {
     if (!string) {
       return '';
@@ -153,8 +171,6 @@ var app = {
   hideSpinner: function() {
     $('.spinner').fadeOut();
   }
-  
-  
 };
 
 $(document).ready(function() {
